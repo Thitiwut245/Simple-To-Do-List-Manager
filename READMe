@@ -1,0 +1,13 @@
+# API Usage
+
+Run locally:
+$ python app.py
+
+Endpoints:
+GET    /tasks              -> list all tasks
+GET    /tasks?q=<term>     -> search tasks
+GET    /tasks/<id>         -> get a single task
+POST   /tasks              -> create task, JSON body: {"description":"..."}
+PUT    /tasks/<id>         -> replace task description, JSON body: {"description":"..."}
+POST   /tasks/<id>/complete-> mark task complete
+DELETE /tasks/<id>         -> delete a task

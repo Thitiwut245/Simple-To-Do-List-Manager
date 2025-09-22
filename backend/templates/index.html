@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>✯ Simple To-Do List ✯</title>
+  <style>
+    body { 
+      font-family: "Courier New", monospace; 
+      padding: 20px; 
+      background: #fdf5f5; 
+      color: #222;
+    }
+    h1 { 
+      text-align: center; 
+      background: #a80000; 
+      color: white; 
+      padding: 20px; 
+      text-transform: uppercase; 
+      letter-spacing: 3px; 
+      border: 4px solid black;
+    }
+    ul { 
+      list-style: none; 
+      padding: 0; 
+    }
+    li { 
+      padding: 12px; 
+      margin-bottom: 8px; 
+      background: #fff; 
+      border: 2px solid #a80000; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      font-weight: bold;
+    }
+    li.completed { 
+      text-decoration: line-through; 
+      color: gray; 
+      background: #f4dcdc; 
+    }
+    button { 
+      margin-left: 6px; 
+      padding: 6px 12px; 
+      border: none; 
+      cursor: pointer; 
+      font-weight: bold; 
+      border-radius: 3px;
+    }
+    .complete-btn { background: #28a745; color: white; }
+    .edit-btn { background: #ffc107; color: black; }
+    .delete-btn { background: #dc3545; color: white; }
+    input { 
+      padding: 12px; 
+      width: 70%; 
+      border: 2px solid #a80000; 
+      font-weight: bold; 
+    }
+    .add-container { 
+      display: flex; 
+      justify-content: center; 
+      margin-bottom: 20px; 
+    }
+    .add-container button { 
+      background: #a80000; 
+      color: rgb(241, 206, 206); 
+      padding: 12px 18px; 
+      font-weight: bold; 
+    }
+    .search-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .search-container input {
+      width: 60%;
+    }
+    .search-container button {
+      background: black;
+      color: white;
+      padding: 12px 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>✯ Simple To-Do List ✯</h1>
+
+  <div class="add-container">
+    <input id="taskInput" placeholder="Enter new task">
+    <button onclick="addTask()">Add</button>
+  </div>
+
+  <div class="search-container">
+    <input id="searchInput" placeholder="Search tasks">
+    <button onclick="searchTasks()">Search</button>
+  </div>
+
+  <ul id="taskList"></ul>
+
+  <script>
+    const API_URL = "/tasks/";
+
+    async function loadTasks() {
+      let res = await fetch(API_URL);
+      let tasks = await res.json();
+      renderTasks(tasks);
+    }
+
+    function renderTasks(tasks) {
+      const list = document.getElementById("taskList");
+      list.innerHTML = "";
+      tasks.forEach(t => {
+        const li = document.createElement("li");
+        li.className = t.status === "complete" ? "completed" : "";
+        li.innerHTML = `
+          <span>${t.title}</span>
+          <div>
+            <button class="complete-btn" onclick="completeTask(${t.id})">Complete</button>
+            <button class="edit-btn" onclick="editTask(${t.id}, '${t.title.replace(/'/g, "\\'")}')">Edit</button>
+            <button class="delete-btn" onclick="deleteTask(${t.id})">Delete</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    async function addTask() {
+      const input = document.getElementById("taskInput");
+      const title = input.value.trim();
+      if (!title) return alert("Task cannot be empty!");
+      await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title })
+      });
+      input.value = "";
+      loadTasks();
+    }
+
+    async function completeTask(id) {
+      await fetch(`${API_URL}${id}/complete`, { method: "PUT" });
+      loadTasks();
+    }
+
+    async function editTask(id, oldTitle) {
+      const newTitle = prompt("Edit task:", oldTitle);
+      if (!newTitle || !newTitle.trim()) return;
+      await fetch(`${API_URL}${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle.trim() })
+      });
+      loadTasks();
+    }
+
+    async function deleteTask(id) {
+      if (!confirm("Are you sure you want to delete this task?")) return;
+      await fetch(`${API_URL}${id}`, { method: "DELETE" });
+      loadTasks();
+    }
+
+    async function searchTasks() {
+      const q = document.getElementById("searchInput").value.trim();
+      if (!q) { loadTasks(); return; }
+      const res = await fetch(`${API_URL}search?q=${encodeURIComponent(q)}`);
+      const tasks = await res.json();
+      renderTasks(tasks);
+    }
+
+    loadTasks();
+  </script>
+</body>
+</html>

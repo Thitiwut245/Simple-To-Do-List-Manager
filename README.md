@@ -60,8 +60,6 @@ Simple-To-Do-List-Manager/
 
 │   ├── index.html          # Main web frontend
 
-│   └── tasks_table.html    # Table view for /tasks/
-
 │
 
 ├── requirements.txt        # Python dependencies
